@@ -1,0 +1,25 @@
+
+# Please Run Each Line in an Az Prompt (Powershell) 
+# Note: You can run .\make.ps1 to Replace $BlobStorageAccountName with a valid unique name.
+
+# Create a unique Storage Account Name | 
+$BlobStorageAccountName = "web000$([guid]::NewGuid().Guid.Substring(0,5).toLower())"
+
+# Create Resource Group
+az group create --location "North Europe" --name RG-demo-static-site
+
+# Create Storage Account
+az storage account create --location "North Europe" --resource-group RG-demo-static-site  --name  $BlobStorageAccountName --kind StorageV2 --sku Standard_LRS 
+
+# Enable Static Website
+az storage blob service-properties update --account-name $BlobStorageAccountName --static-website --404-document "404.html" --index-document "index.html"
+
+# Get Storage Account Key
+$storageAccountKey = (az storage account keys list --resource-group RG-demo-static-site --account-name $BlobStorageAccountName | ConvertFrom-json | %{ $_ } | Where-object keyName -eq 'key1' | Select-Object value).value
+
+# Upload Blob Files
+az storage blob upload --container-name '$web' --account-name $BlobStorageAccountName --file ./index.html --name index.html --auth-mode key --account-key $storageAccountKey 
+az storage blob upload --container-name '$web' --account-name $BlobStorageAccountName --file ./404.html --name 404.html --auth-mode key --account-key $storageAccountKey 
+
+# Get Azure Static Site URL
+az storage account show --name $BlobStorageAccountName --resource-group RG-demo-static-site --query "primaryEndpoints.web" --output tsv
