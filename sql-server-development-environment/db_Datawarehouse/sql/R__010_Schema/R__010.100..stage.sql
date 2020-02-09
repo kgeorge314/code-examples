@@ -1,0 +1,2 @@
+IF SCHEMA_ID('stage') IS NULL
+	EXEC ('CREATE SCHEMA [stage] AUTHORIZATION dbo'); 
