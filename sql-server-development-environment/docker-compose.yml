@@ -17,3 +17,13 @@ services:
             SQLCMDUSER: sa
             SQLCMDPASSWORD: ${SQL_SERVER_PASSWORD}
         command: '/tooling/execute-sql-scripts.sh'
+
+    flyway:
+        image: 'boxfuse/flyway:5.2.4'
+        command: '-user=sa -password=${SQL_SERVER_PASSWORD} -url="jdbc:sqlserver://db;databaseName=DataWarehouse" -connectRetries=60 migrate'
+        volumes:
+            - './db_Datawarehouse/sql:/flyway/sql'
+            - './db_Datawarehouse/conf:/flyway/conf'
+        depends_on:
+            - inittools
+            - db
